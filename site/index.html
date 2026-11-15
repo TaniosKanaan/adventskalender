@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adventskalender</title>
+<style>
+  :root { color-scheme: light; --bg: #f6f1ea; --ink: #241c18; --card: #fffdf9; --line: #e4d9cc; --ja: #1f6b45; --nein: #8a8178; --alt: #8d4b63; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 17px/1.4 "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+  header { max-width: 720px; margin: 0 auto; padding: 28px 16px 8px; }
+  h1 { font-size: 32px; margin: 0 0 6px; }
+  header p { margin: 0; color: #5c5148; }
+  main { max-width: 720px; margin: 0 auto; padding: 16px; display: grid; gap: 16px; }
+  article { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  img { width: 100%; height: 280px; object-fit: contain; background: #fff; display: block; }
+  .body { padding: 14px 14px 16px; }
+  .n { font-size: 13px; letter-spacing: .04em; color: #8d4b63; margin: 0 0 4px; }
+  h2 { font-size: 18px; margin: 0 0 10px; }
+  a.produkt { color: var(--alt); }
+  .row { display: flex; gap: 8px; margin-top: 12px; }
+  button { flex: 1; min-height: 44px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer; }
+  button[aria-pressed="true"][data-choice="ja"] { background: var(--ja); color: #fff; border-color: var(--ja); }
+  button[aria-pressed="true"][data-choice="nein"] { background: var(--nein); color: #fff; border-color: var(--nein); }
+  button[aria-pressed="true"][data-choice="alt"] { background: var(--alt); color: #fff; border-color: var(--alt); }
+  .alt { display: none; margin-top: 10px; }
+  .alt.on { display: block; }
+  input { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font: inherit; }
+  .alt a { display: inline-block; margin-top: 8px; word-break: break-all; }
+  #status { max-width: 720px; margin: 0 auto; padding: 0 16px 28px; color: #5c5148; font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Adventskalender</h1>
+  <p>Ja, nein, oder ein Link zu einer Alternative.</p>
+</header>
+<main id="list"></main>
+<p id="status"></p>
+<script>
+const SB_URL = "https://cgvjrswhgdpdrfuhpnkb.supabase.co";
+const SB_KEY = "sb_publishable_gWZOM4q4sVm1Fl9G9Dw6dw_TPn3Uk3u";
+const DOORS = [
+  { n: 1, name: "Zettel und Tee für zwei" },
+  { n: 2, name: "Nø Cleansing Oil Gel, fresh tøday", href: "https://no-cosmetics.com/products/cleansing-oil-gel-3-phasen-reiniger-fresh-today", img: "https://no-cosmetics.com/cdn/shop/files/OS-Single-Product-Shots-Cleanser-Fresh-Birthday-no-cosmetics.webp" },
+  { n: 3, name: "Ein Riegel" },
+  { n: 4, name: "Nø Liquid Hydrator, happy tøday", href: "https://no-cosmetics.com/products/120h-liquid-hydrator-happy-today", img: "https://no-cosmetics.com/cdn/shop/files/120h-liquid-hydrator-no-cosmetics.webp" },
+  { n: 5, name: "Rituals Sakura Mini Shower Foam", href: "https://www.rituals.com/de-de/collection/sakura" },
+  { n: 6, name: "Geek & Gorgeous Jelly Joker", href: "https://www.amazon.de/dp/B09H6NKF9R", img: "https://m.media-amazon.com/images/I/51jcHW9axFL._AC_SL400_.jpg" },
+  { n: 7, name: "Gutschein: Frühstück ans Bett" },
+  { n: 8, name: "Nø Niacinamid-Serum, rain tønight", href: "https://no-cosmetics.com/products/120h-hydration-niacinamide-serum-rain-tonight", img: "https://no-cosmetics.com/cdn/shop/files/OS-Single-Product_Shots-Seren-Rain-Birthday-no-cosmetics.webp" },
+  { n: 9, name: "Mandeln und Medjool-Datteln" },
+  { n: 10, name: "Rituals Sakura Handbalsam", href: "https://www.amazon.de/dp/B0BSLNX87S", img: "https://m.media-amazon.com/images/I/51HmuYzng3L._AC_SL400_.jpg" },
+  { n: 11, name: "e.l.f. Power Grip Primer + Niacinamide", href: "https://www.amazon.de/dp/B0BQQS5GBQ", img: "https://m.media-amazon.com/images/I/61UkKRb5YWL._AC_SL400_.jpg" },
+  { n: 12, name: "Geek & Gorgeous C-Glow", href: "https://www.amazon.de/dp/B08NVZ4T3B", img: "https://m.media-amazon.com/images/I/515tG10BViL._AC_SL400_.jpg" },
+  { n: 13, name: "Beauty of Joseon Relief Sun", href: "https://www.amazon.de/dp/B09JVNZVH3", img: "https://m.media-amazon.com/images/I/61MpY4ea6jL._AC_SL400_.jpg" },
+  { n: 14, name: "Kleine Duftkerze, Ocean Blossom", href: "https://www.amazon.de/dp/B0GRW9S3SP", img: "https://m.media-amazon.com/images/I/61MFXCJM+QL._AC_SL400_.jpg" },
+  { n: 15, name: "Nø Augencreme, bright tønight", href: "https://no-cosmetics.com/products/all-in-eye-sleeping-mask-bright-tonight", img: "https://no-cosmetics.com/cdn/shop/files/all-in-eye-sleeping-mask-no-cosmetics.webp" },
+  { n: 16, name: "Rituals Sakura Hair & Body Mist", href: "https://www.amazon.de/dp/B0GD7G7FTP", img: "https://m.media-amazon.com/images/I/51v-iIDiX6L._AC_SL400_.jpg" },
+  { n: 17, name: "Lindt Excellence Feinherbe mit Meersalz", href: "https://www.amazon.de/dp/B07Y2BVJKG", img: "https://m.media-amazon.com/images/I/71yFIjHONjL._AC_SL400_.jpg" },
+  { n: 18, name: "Huda Faux Filler Gloss", href: "https://www.douglas.de/de/b/huda-beauty/b2707", img: "https://m.media-amazon.com/images/I/512KDap0hAL._AC_SL400_.jpg" },
+  { n: 19, name: "Rituals Sakura Mini Body Cream", href: "https://www.rituals.com/de-de/collection/sakura" },
+  { n: 20, name: "Huda Filter Liquid Blush, Cotton Candy", href: "https://www.douglas.de/de/b/huda-beauty/b2707", img: "https://m.media-amazon.com/images/I/31dGar-c5zL._AC_SL400_.jpg" },
+  { n: 21, name: "Gutschein: Massage" },
+  { n: 22, name: "Nø ALL-IN Barrier Cream, celebrate tøday", href: "https://no-cosmetics.com/products/all-in-barrier-cream-celebrate-today", img: "https://m.media-amazon.com/images/I/51FA-nh5jlL._AC_SL400_.jpg" },
+  { n: 23, name: "Geek & Gorgeous Power Peptides", href: "https://geekandgorgeous.com/products/power-peptides", img: "https://m.media-amazon.com/images/I/51eCGqvRTUL._AC_SL400_.jpg" },
+  { n: 24, name: "Huda Mini Lip Kit und der Brief", href: "https://www.douglas.de/de/b/huda-beauty/make-up/lippen/lippenstifte/b2707_030201" }
+];
+
+const picks = {};
+const status = document.getElementById("status");
+
+function headers() {
+  return { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" };
+}
+
+async function load() {
+  if (!SB_URL || !SB_KEY) {
+    const saved = JSON.parse(localStorage.getItem("advent-picks") || "{}");
+    Object.assign(picks, saved);
+    status.textContent = "Gespeichert auf diesem Gerät.";
+    return;
+  }
+  const res = await fetch(SB_URL + "/rest/v1/picks?select=n,choice,alt_url&order=n", { headers: headers() });
+  if (!res.ok) throw new Error("load");
+  for (const row of await res.json()) picks[row.n] = { choice: row.choice, alt: row.alt_url || "" };
+  status.textContent = "Für alle sichtbar, die diese Seite öffnen.";
+}
+
+function paint(n) {
+  const card = document.querySelector('[data-n="' + n + '"]');
+  const pick = picks[n] || {};
+  card.querySelectorAll("button").forEach((btn) => {
+    btn.setAttribute("aria-pressed", String(btn.dataset.choice === pick.choice));
+  });
+  const box = card.querySelector(".alt");
+  box.classList.toggle("on", pick.choice === "alt");
+  const input = box.querySelector("input");
+  if (document.activeElement !== input) input.value = pick.alt || "";
+  const link = box.querySelector("a");
+  const ok = /^https:\/\//i.test(pick.alt || "");
+  link.hidden = !ok;
+  if (ok) { link.href = pick.alt; link.textContent = pick.alt; }
+}
+
+async function save(n) {
+  const pick = picks[n] || {};
+  if (!SB_URL || !SB_KEY) {
+    localStorage.setItem("advent-picks", JSON.stringify(picks));
+    return;
+  }
+  const alt = pick.choice === "alt" && /^https:\/\//i.test(pick.alt || "") ? pick.alt : null;
+  const res = await fetch(SB_URL + "/rest/v1/picks?n=eq." + n, {
+    method: "PATCH",
+    headers: headers(),
+    body: JSON.stringify({ choice: pick.choice || null, alt_url: alt })
+  });
+  if (!res.ok) throw new Error("save");
+}
+
+function choose(n, choice) {
+  const pick = picks[n] || { choice: null, alt: "" };
+  pick.choice = pick.choice === choice ? null : choice;
+  picks[n] = pick;
+  paint(n);
+  save(n).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
+}
+
+function setAlt(n, value) {
+  const pick = picks[n] || { choice: "alt", alt: "" };
+  pick.choice = "alt";
+  pick.alt = value.trim();
+  picks[n] = pick;
+  paint(n);
+  save(n).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
+}
+
+const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+document.getElementById("list").innerHTML = DOORS.map((d) => `
+  <article data-n="${d.n}">
+    ${d.img ? `<img src="${d.img}" alt="">` : ""}
+    <div class="body">
+      <p class="n">Tür ${d.n}</p>
+      <h2>${esc(d.name)}</h2>
+      ${d.href ? `<a class="produkt" href="${d.href}">Produkt</a>` : ""}
+      <div class="row">
+        <button type="button" data-choice="ja" aria-pressed="false">Ja</button>
+        <button type="button" data-choice="nein" aria-pressed="false">Nein</button>
+        <button type="button" data-choice="alt" aria-pressed="false">Alternative</button>
+      </div>
+      <div class="alt">
+        <input type="url" placeholder="https://">
+        <a hidden target="_blank" rel="noopener"></a>
+      </div>
+    </div>
+  </article>`).join("");
+
+document.getElementById("list").addEventListener("click", (e) => {
+  const btn = e.target.closest("button");
+  if (!btn) return;
+  choose(Number(btn.closest("article").dataset.n), btn.dataset.choice);
+});
+document.getElementById("list").addEventListener("change", (e) => {
+  if (e.target.tagName !== "INPUT") return;
+  setAlt(Number(e.target.closest("article").dataset.n), e.target.value);
+});
+
+load().then(() => DOORS.forEach((d) => paint(d.n))).catch(() => { status.textContent = "Die Liste ist da, die Haken konnten nicht geladen werden."; });
+</script>
+</body>
+</html>
