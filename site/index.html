@@ -57,7 +57,7 @@ function card(row) {
     <div class="body">
       <p class="n">Tür ${row.n}</p>
       <h2>${esc(product.name || "")}</h2>
-      ${product.href ? `<a class="produkt" href="${esc(product.href)}">Produkt</a>` : ""}
+      ${product.href ? `<a class="produkt" href="${esc(product.href)}" target="_blank" rel="noopener">Produkt</a>` : ""}
       <div class="row">
         <button type="button" data-choice="ja" aria-pressed="false">Ja</button>
         <button type="button" data-choice="nein" aria-pressed="false">Nein</button>
