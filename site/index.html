@@ -40,33 +40,6 @@
 <script>
 const SB_URL = "https://cgvjrswhgdpdrfuhpnkb.supabase.co";
 const SB_KEY = "sb_publishable_gWZOM4q4sVm1Fl9G9Dw6dw_TPn3Uk3u";
-const DOORS = [
-  { n: 1, name: "Zettel und Tee für zwei" },
-  { n: 2, name: "Nø Cleansing Oil Gel, fresh tøday", href: "https://no-cosmetics.com/products/cleansing-oil-gel-3-phasen-reiniger-fresh-today", img: "https://no-cosmetics.com/cdn/shop/files/OS-Single-Product-Shots-Cleanser-Fresh-Birthday-no-cosmetics.webp" },
-  { n: 3, name: "Ein Riegel" },
-  { n: 4, name: "Nø Liquid Hydrator, happy tøday", href: "https://no-cosmetics.com/products/120h-liquid-hydrator-happy-today", img: "https://no-cosmetics.com/cdn/shop/files/120h-liquid-hydrator-no-cosmetics.webp" },
-  { n: 5, name: "Rituals Sakura Mini Shower Foam", href: "https://www.rituals.com/de-de/collection/sakura" },
-  { n: 6, name: "Geek & Gorgeous Jelly Joker", href: "https://www.amazon.de/dp/B09H6NKF9R", img: "https://m.media-amazon.com/images/I/51jcHW9axFL._AC_SL400_.jpg" },
-  { n: 7, name: "Gutschein: Frühstück ans Bett" },
-  { n: 8, name: "Nø Niacinamid-Serum, rain tønight", href: "https://no-cosmetics.com/products/120h-hydration-niacinamide-serum-rain-tonight", img: "https://no-cosmetics.com/cdn/shop/files/OS-Single-Product_Shots-Seren-Rain-Birthday-no-cosmetics.webp" },
-  { n: 9, name: "Mandeln und Medjool-Datteln" },
-  { n: 10, name: "Rituals Sakura Handbalsam", href: "https://www.amazon.de/dp/B0BSLNX87S", img: "https://m.media-amazon.com/images/I/51HmuYzng3L._AC_SL400_.jpg" },
-  { n: 11, name: "e.l.f. Power Grip Primer + Niacinamide", href: "https://www.amazon.de/dp/B0BQQS5GBQ", img: "https://m.media-amazon.com/images/I/61UkKRb5YWL._AC_SL400_.jpg" },
-  { n: 12, name: "Geek & Gorgeous C-Glow", href: "https://www.amazon.de/dp/B08NVZ4T3B", img: "https://m.media-amazon.com/images/I/515tG10BViL._AC_SL400_.jpg" },
-  { n: 13, name: "Beauty of Joseon Relief Sun", href: "https://www.amazon.de/dp/B09JVNZVH3", img: "https://m.media-amazon.com/images/I/61MpY4ea6jL._AC_SL400_.jpg" },
-  { n: 14, name: "Kleine Duftkerze, Ocean Blossom", href: "https://www.amazon.de/dp/B0GRW9S3SP", img: "https://m.media-amazon.com/images/I/61MFXCJM+QL._AC_SL400_.jpg" },
-  { n: 15, name: "Nø Augencreme, bright tønight", href: "https://no-cosmetics.com/products/all-in-eye-sleeping-mask-bright-tonight", img: "https://no-cosmetics.com/cdn/shop/files/all-in-eye-sleeping-mask-no-cosmetics.webp" },
-  { n: 16, name: "Rituals Sakura Hair & Body Mist", href: "https://www.amazon.de/dp/B0GD7G7FTP", img: "https://m.media-amazon.com/images/I/51v-iIDiX6L._AC_SL400_.jpg" },
-  { n: 17, name: "Lindt Excellence Feinherbe mit Meersalz", href: "https://www.amazon.de/dp/B07Y2BVJKG", img: "https://m.media-amazon.com/images/I/71yFIjHONjL._AC_SL400_.jpg" },
-  { n: 18, name: "Huda Faux Filler Gloss", href: "https://www.douglas.de/de/b/huda-beauty/b2707", img: "https://m.media-amazon.com/images/I/512KDap0hAL._AC_SL400_.jpg" },
-  { n: 19, name: "Rituals Sakura Mini Body Cream", href: "https://www.rituals.com/de-de/collection/sakura" },
-  { n: 20, name: "Huda Filter Liquid Blush, Cotton Candy", href: "https://www.douglas.de/de/b/huda-beauty/b2707", img: "https://m.media-amazon.com/images/I/31dGar-c5zL._AC_SL400_.jpg" },
-  { n: 21, name: "Gutschein: Massage" },
-  { n: 22, name: "Nø ALL-IN Barrier Cream, celebrate tøday", href: "https://no-cosmetics.com/products/all-in-barrier-cream-celebrate-today", img: "https://m.media-amazon.com/images/I/51FA-nh5jlL._AC_SL400_.jpg" },
-  { n: 23, name: "Geek & Gorgeous Power Peptides", href: "https://geekandgorgeous.com/products/power-peptides", img: "https://m.media-amazon.com/images/I/51eCGqvRTUL._AC_SL400_.jpg" },
-  { n: 24, name: "Huda Mini Lip Kit und der Brief", href: "https://www.douglas.de/de/b/huda-beauty/make-up/lippen/lippenstifte/b2707_030201" }
-];
-
 const picks = {};
 const status = document.getElementById("status");
 
@@ -74,16 +47,36 @@ function headers() {
   return { apikey: SB_KEY, Authorization: "Bearer " + SB_KEY, "Content-Type": "application/json", Prefer: "return=minimal" };
 }
 
+const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+
+function card(row) {
+  const product = row.products || {};
+  return `
+  <article data-n="${row.n}">
+    ${product.img ? `<img src="${esc(product.img)}" alt="">` : ""}
+    <div class="body">
+      <p class="n">Tür ${row.n}</p>
+      <h2>${esc(product.name || "")}</h2>
+      ${product.href ? `<a class="produkt" href="${esc(product.href)}">Produkt</a>` : ""}
+      <div class="row">
+        <button type="button" data-choice="ja" aria-pressed="false">Ja</button>
+        <button type="button" data-choice="nein" aria-pressed="false">Nein</button>
+        <button type="button" data-choice="alt" aria-pressed="false">Alternative</button>
+      </div>
+      <div class="alt">
+        <input type="url" placeholder="https://">
+        <a hidden target="_blank" rel="noopener"></a>
+      </div>
+    </div>
+  </article>`;
+}
+
 async function load() {
-  if (!SB_URL || !SB_KEY) {
-    const saved = JSON.parse(localStorage.getItem("advent-picks") || "{}");
-    Object.assign(picks, saved);
-    status.textContent = "Gespeichert auf diesem Gerät.";
-    return;
-  }
-  const res = await fetch(SB_URL + "/rest/v1/picks?select=n,choice,alt_url&order=n", { headers: headers() });
+  const res = await fetch(SB_URL + "/rest/v1/picks?select=n,choice,alt_url,products(name,href,img)&order=n", { headers: headers() });
   if (!res.ok) throw new Error("load");
-  for (const row of await res.json()) picks[row.n] = { choice: row.choice, alt: row.alt_url || "" };
+  const rows = await res.json();
+  document.getElementById("list").innerHTML = rows.map(card).join("");
+  for (const row of rows) picks[row.n] = { choice: row.choice, alt: row.alt_url || "" };
   status.textContent = "Für alle sichtbar, die diese Seite öffnen.";
 }
 
@@ -105,10 +98,6 @@ function paint(n) {
 
 async function save(n) {
   const pick = picks[n] || {};
-  if (!SB_URL || !SB_KEY) {
-    localStorage.setItem("advent-picks", JSON.stringify(picks));
-    return;
-  }
   const alt = pick.choice === "alt" && /^https:\/\//i.test(pick.alt || "") ? pick.alt : null;
   const res = await fetch(SB_URL + "/rest/v1/picks?n=eq." + n, {
     method: "PATCH",
@@ -135,26 +124,6 @@ function setAlt(n, value) {
   save(n).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
 }
 
-const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
-document.getElementById("list").innerHTML = DOORS.map((d) => `
-  <article data-n="${d.n}">
-    ${d.img ? `<img src="${d.img}" alt="">` : ""}
-    <div class="body">
-      <p class="n">Tür ${d.n}</p>
-      <h2>${esc(d.name)}</h2>
-      ${d.href ? `<a class="produkt" href="${d.href}">Produkt</a>` : ""}
-      <div class="row">
-        <button type="button" data-choice="ja" aria-pressed="false">Ja</button>
-        <button type="button" data-choice="nein" aria-pressed="false">Nein</button>
-        <button type="button" data-choice="alt" aria-pressed="false">Alternative</button>
-      </div>
-      <div class="alt">
-        <input type="url" placeholder="https://">
-        <a hidden target="_blank" rel="noopener"></a>
-      </div>
-    </div>
-  </article>`).join("");
-
 document.getElementById("list").addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
@@ -165,7 +134,7 @@ document.getElementById("list").addEventListener("change", (e) => {
   setAlt(Number(e.target.closest("article").dataset.n), e.target.value);
 });
 
-load().then(() => DOORS.forEach((d) => paint(d.n))).catch(() => { status.textContent = "Die Liste ist da, die Haken konnten nicht geladen werden."; });
+load().then(() => Object.keys(picks).forEach((n) => paint(Number(n)))).catch(() => { status.textContent = "Die Produkte konnten nicht geladen werden."; });
 </script>
 </body>
 </html>
