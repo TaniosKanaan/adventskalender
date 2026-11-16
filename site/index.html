@@ -116,9 +116,38 @@ function choose(n, choice) {
 }
 
 function setAlt(n, value) {
+  const href = value.trim();
+  if (/^https:\/\//i.test(href)) {
+    fetch(SB_URL + "/rest/v1/products?n=eq." + n, {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ href })
+    }).then((res) => {
+      if (!res.ok) throw new Error("product");
+      const card = document.querySelector('[data-n="' + n + '"]');
+      let link = card.querySelector("a.produkt");
+      if (!link) {
+        link = document.createElement("a");
+        link.className = "produkt";
+        link.textContent = "Produkt";
+        card.querySelector("h2").after(link);
+      }
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener";
+      const pick = picks[n] || { choice: null, alt: "" };
+      pick.choice = "ja";
+      pick.alt = "";
+      picks[n] = pick;
+      paint(n);
+      card.querySelector("input").value = "";
+      return save(n);
+    }).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
+    return;
+  }
   const pick = picks[n] || { choice: "alt", alt: "" };
   pick.choice = "alt";
-  pick.alt = value.trim();
+  pick.alt = href;
   picks[n] = pick;
   paint(n);
   save(n).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
