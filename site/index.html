@@ -126,28 +126,31 @@ function setAlt(n, value) {
     save(n).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
     return;
   }
-  const isLink = /^https:\/\//i.test(text);
+  if (!/^https:\/\//i.test(text)) {
+    pick.choice = "alt";
+    pick.alt = text;
+    picks[n] = pick;
+    paint(n);
+    save(n).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
+    return;
+  }
   fetch(SB_URL + "/rest/v1/products?n=eq." + n, {
     method: "PATCH",
     headers: headers(),
-    body: JSON.stringify(isLink ? { href: text } : { name: text })
+    body: JSON.stringify({ href: text })
   }).then((res) => {
     if (!res.ok) throw new Error("product");
     const card = document.querySelector('[data-n="' + n + '"]');
-    if (isLink) {
-      let link = card.querySelector("a.produkt");
-      if (!link) {
-        link = document.createElement("a");
-        link.className = "produkt";
-        link.target = "_blank";
-        link.rel = "noopener";
-        link.textContent = "Produkt";
-        card.querySelector("h2").after(link);
-      }
-      link.href = text;
-    } else {
-      card.querySelector("h2").textContent = text;
+    let link = card.querySelector("a.produkt");
+    if (!link) {
+      link = document.createElement("a");
+      link.className = "produkt";
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = "Produkt";
+      card.querySelector("h2").after(link);
     }
+    link.href = text;
     pick.choice = "ja";
     pick.alt = "";
     picks[n] = pick;
