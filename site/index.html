@@ -87,7 +87,7 @@ function paint(n) {
     btn.setAttribute("aria-pressed", String(btn.dataset.choice === pick.choice));
   });
   const box = card.querySelector(".alt");
-  box.classList.toggle("on", pick.choice === "alt");
+  box.classList.toggle("on", pick.choice === "alt" || !!pick.alt);
   const input = box.querySelector("input");
   if (document.activeElement !== input) input.value = pick.alt || "";
   const link = box.querySelector("a");
@@ -98,7 +98,7 @@ function paint(n) {
 
 async function save(n) {
   const pick = picks[n] || {};
-  const alt = pick.choice === "alt" && pick.alt ? pick.alt.slice(0, 500) : null;
+  const alt = pick.alt ? pick.alt.slice(0, 500) : null;
   const res = await fetch(SB_URL + "/rest/v1/picks?n=eq." + n, {
     method: "PATCH",
     headers: headers(),
@@ -152,10 +152,9 @@ function setAlt(n, value) {
     }
     link.href = text;
     pick.choice = "ja";
-    pick.alt = "";
+    pick.alt = text;
     picks[n] = pick;
     paint(n);
-    card.querySelector("input").value = "";
     return save(n);
   }).catch(() => { status.textContent = "Speichern hat nicht geklappt."; });
 }
