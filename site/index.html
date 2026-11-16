@@ -16,6 +16,9 @@
   img { width: 100%; height: 280px; object-fit: contain; background: #fff; display: block; }
   .body { padding: 14px 14px 16px; }
   .n { font-size: 13px; letter-spacing: .04em; color: #8d4b63; margin: 0 0 4px; }
+  .gekauft { display: none; margin-left: 8px; color: var(--ja); }
+  article.bought { box-shadow: inset 0 0 0 2px var(--ja); }
+  article.bought .gekauft { display: inline; }
   h2 { font-size: 18px; margin: 0 0 10px; }
   a.produkt { color: var(--alt); }
   .row { display: flex; gap: 8px; margin-top: 12px; }
@@ -55,7 +58,7 @@ function card(row) {
   <article data-n="${row.n}">
     ${product.img ? `<img src="${esc(product.img)}" alt="">` : ""}
     <div class="body">
-      <p class="n">Tür ${row.n}</p>
+      <p class="n">Tür ${row.n}<span class="gekauft">Gekauft</span></p>
       <h2>${esc(product.name || "")}</h2>
       ${product.href ? `<a class="produkt" href="${esc(product.href)}" target="_blank" rel="noopener">Produkt</a>` : ""}
       <div class="row">
@@ -72,17 +75,18 @@ function card(row) {
 }
 
 async function load() {
-  const res = await fetch(SB_URL + "/rest/v1/picks?select=n,choice,alt_url,products(name,href,img)&order=n", { headers: headers() });
+  const res = await fetch(SB_URL + "/rest/v1/picks?select=n,choice,alt_url,bought,products(name,href,img)&order=n", { headers: headers() });
   if (!res.ok) throw new Error("load");
   const rows = await res.json();
   document.getElementById("list").innerHTML = rows.map(card).join("");
-  for (const row of rows) picks[row.n] = { choice: row.choice, alt: row.alt_url || "" };
+  for (const row of rows) picks[row.n] = { choice: row.choice, alt: row.alt_url || "", bought: !!row.bought };
   status.textContent = "Für alle sichtbar, die diese Seite öffnen.";
 }
 
 function paint(n) {
   const card = document.querySelector('[data-n="' + n + '"]');
   const pick = picks[n] || {};
+  card.classList.toggle("bought", !!pick.bought);
   card.querySelectorAll("button").forEach((btn) => {
     btn.setAttribute("aria-pressed", String(btn.dataset.choice === pick.choice));
   });
